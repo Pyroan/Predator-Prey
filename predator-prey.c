@@ -11,11 +11,11 @@
 #define PREDATOR 2
 
 // Edit these to determine number of cells
-#define width 400
-#define height 400
+#define width 640
+#define height 360
 
 // Edit this to determine size of cells (and thus the window)
-float pointSize = 1.0;
+float pointSize = 3.0;
 
 long Time, timeToNextFrame;
 // Edit this to change the step rate
@@ -24,9 +24,13 @@ float frameRate = 1.0/60;
 // Edit this to change how quickly new prey spawns and old predators die.
 int health_threshold = 5;
 
+// Edit this to change how quickly the color fades in a newly dead-ed cell.
+float bleedRate = 1.2;
+
 struct cell {
 	int health;
 	int type; // Either DEAD, PREY, or PREDATOR
+	float prevColor[3];
 };
 
 struct cell grid[width][height];
@@ -219,15 +223,27 @@ void drawGrid(void) {
 	glBegin(GL_POINTS);
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
+			float r = grid[i][j].prevColor[0]/bleedRate;
+			float g = grid[i][j].prevColor[1]/bleedRate;
+			float b = grid[i][j].prevColor[2]/bleedRate;
 			switch(grid[i][j].type) {
 				case DEAD:
-					glColor3f(0,0,0);
+					glColor3f(r,g,b);
+					grid[i][j].prevColor[0]=r;
+					grid[i][j].prevColor[1]=g;
+					grid[i][j].prevColor[2]=b;
 					break;
 				case PREY:
+					grid[i][j].prevColor[0] = 0;
+					grid[i][j].prevColor[1] = 1.0;
+					grid[i][j].prevColor[2] = 0;
 					glColor3f(0,1,0);
 					break;
 				case PREDATOR:
-					glColor3f((1.0f*grid[i][j].health/health_threshold),0,0);
+					grid[i][j].prevColor[0] = 1.0;
+					grid[i][j].prevColor[1] = 0;
+					grid[i][j].prevColor[2] = 0;
+					glColor3f(1,0,0);
 					break;
 				default:
 					glColor3f(1,1,1);
